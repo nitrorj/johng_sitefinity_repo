@@ -1,0 +1,101 @@
+﻿@using MercolaSiteFinity.MVC.ViewModel
+<style>
+    .page-container {
+        display: flex;
+        justify-content: center;
+        align-items: flex-start;
+        max-width: 1200px;
+        margin: auto;
+        gap: 20px;
+    }
+
+    .health-article-container {
+        flex-shrink: 0;
+        flex-grow: 0;
+        width: 800px;
+        padding: 30px;
+        border: 1px solid #ddd;
+        border-radius: 8px;
+        background-color: #f9f9f9;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    }
+
+    .article-navigation {
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        gap: 20px;
+        flex-shrink: 0;
+    }
+
+        .article-navigation a {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            background-color: #007bff;
+            color: white;
+            padding: 10px 15px;
+            text-decoration: none;
+            border-radius: 5px;
+            font-weight: bold;
+            white-space: nowrap;
+            transition: background-color 0.3s ease;
+        }
+
+            .article-navigation a:hover {
+                background-color: #0056b3;
+            }
+
+    .back-link {
+        display: inline-block;
+        margin-top: 20px;
+        color: #007bff;
+        text-decoration: none;
+        font-weight: bold;
+    }
+
+    @@media (max-width: 1024px) {
+        .page-container {
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .article-navigation {
+            flex-direction: row;
+            justify-content: center;
+            margin-bottom: 20px;
+        }
+    }
+</style>
+
+<div class="page-container">
+        <div class="article-navigation">
+            @if (!string.IsNullOrEmpty(Model.PreviousArticleURL))
+            {
+                <a href="@Model.PreviousArticleURL"> <span class="arrow">←</span> <span class="button-text">@Model.PreviousArticle.Title</span></a>
+            }
+            else if (!string.IsNullOrEmpty(Model.NextArticleURL))
+            {
+                <a href="/health-articles"><span class="arrow">←</span>  View More </a>
+            }
+        </div>
+
+
+        <div class="health-article-container">
+            <h1>@Model.Article.Title</h1>
+            <p><strong>Published on:</strong> @Model.Article.Date.ToString("MMMM dd, yyyy")</p>
+            @Html.Raw(HttpUtility.HtmlDecode(Model.ArticleContent))
+
+            <a href="/health-articles" class="back-link">Back to Articles</a>
+        </div>
+    <div class="article-navigation">
+            @if (!string.IsNullOrEmpty(Model.NextArticleURL))
+            {
+                <a href="@Model.NextArticleURL"> <span class="button-text">@Model.NextArticle.Title</span> <span class="arrow">→</span></a>
+            }
+            else if (!string.IsNullOrEmpty(Model.PreviousArticleURL))
+            {
+                <a href="/health-articles">View More <span class="arrow">→</span></a>
+            }
+    </div>
+</div>
