@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
@@ -15,6 +15,7 @@ using MercolaSiteFinity.MVC.Controllers;
 using MercolaSiteFinity.MVC.Models;
 using Telerik.Sitefinity.Modules.GenericContent;
 using Telerik.Sitefinity.Services;
+using Telerik.Sitefinity.Multisite;
 
 namespace MercolaSiteFinity.MVC.ViewModel
 {
@@ -25,7 +26,6 @@ namespace MercolaSiteFinity.MVC.ViewModel
         public string Author { get; set; }
         public DateTime Date { get; set; }
         public string Body { get; set; }
-        public string Slug => SlugHelper.GenerateSlug(Title);
         public bool iKnownHealthUser { get; set; }
     }
 
@@ -38,19 +38,22 @@ namespace MercolaSiteFinity.MVC.ViewModel
         public string ArticleContent { get; set; }
         public string PreviousArticleURL { get; set; }
         public string NextArticleURL { get; set; }
+        public string ListPageURL { get; set; }
     }
     public class HealthArticlesService
     {
         public List<HealthArticleViewModel> GetLatestArticles(int count = 10)
         {
-            var providerName = string.Empty;
-            var transactionName = "HealthArticlesTransaction";
-            var cultureName = "en";
+            var currentContext = SystemManager.CurrentContext;
+            var multisiteContext = currentContext.MultisiteContext;
+            var currentSite = multisiteContext.CurrentSite;
 
-            DynamicModuleManager dynamicModuleManager = DynamicModuleManager.GetManager(providerName, transactionName);
+            var providerName = currentSite.GetProviders("HealthArticlesBlogPosts").Select(p => p.ProviderName).First();
+
+            DynamicModuleManager dynamicModuleManager = DynamicModuleManager.GetManager(providerName);
             Type healthArticleType = TypeResolutionService.ResolveType("Telerik.Sitefinity.DynamicTypes.Model.HealthArticlesBlogPosts.Healtharticlesblogposts");
 
-            using (new CultureRegion(cultureName))
+            using (new SiteRegion(currentSite))
             {
                 var articles = dynamicModuleManager.GetDataItems(healthArticleType)
                     .Where(a => a.Status == ContentLifecycleStatus.Live)
@@ -70,43 +73,18 @@ namespace MercolaSiteFinity.MVC.ViewModel
                 return articles;
             }
         }
-
-        public HealthArticleViewModel GetArticleById(Guid articleId)
-        {
-            var providerName = string.Empty;
-            var transactionName = "HealthArticlesTransaction";
-            var cultureName = "en";
-
-            DynamicModuleManager dynamicModuleManager = DynamicModuleManager.GetManager(providerName, transactionName);
-            Type healthArticleType = TypeResolutionService.ResolveType("Telerik.Sitefinity.DynamicTypes.Model.HealthArticlesBlogPosts.Healtharticlesblogposts");
-
-            using (new CultureRegion(cultureName))
-            {
-                var article = dynamicModuleManager.GetDataItems(healthArticleType)
-                    .FirstOrDefault(a => a.Id == articleId && a.Status == ContentLifecycleStatus.Live);
-
-                if (article == null)
-                    return null;
-
-                return new HealthArticleViewModel
-                {
-                    Id = article.Id,
-                    Title = article.GetString("Title"),
-                    Author = article.GetString("PostAuthor"),
-                    Date = article.GetValue<DateTime?>("PostDate") ?? DateTime.MinValue,
-                    Body = article.GetString("Body")
-                };
-            }
-        }
         public HealthArticleViewModel GetHealthArticleByUrl(string urlName)
         {
-            var providerName = string.Empty;
-            var cultureName = "en";
+            var currentContext = SystemManager.CurrentContext;
+            var multisiteContext = currentContext.MultisiteContext;
+            var currentSite = multisiteContext.CurrentSite;
 
-            DynamicModuleManager dynamicModuleManager = DynamicModuleManager.GetManager();
+            var providerName = currentSite.GetProviders("HealthArticlesBlogPosts").Select(p => p.ProviderName).First();
+
+            DynamicModuleManager dynamicModuleManager = DynamicModuleManager.GetManager(providerName);
             Type healthArticleType = TypeResolutionService.ResolveType("Telerik.Sitefinity.DynamicTypes.Model.HealthArticlesBlogPosts.Healtharticlesblogposts");
 
-            using (new CultureRegion(cultureName))
+            using (new SiteRegion(currentSite))
             {
                 var article = dynamicModuleManager.GetDataItems(healthArticleType)
                     .Where(a => a.Status == ContentLifecycleStatus.Live && a.Visible)
@@ -124,33 +102,6 @@ namespace MercolaSiteFinity.MVC.ViewModel
                     Body = article.GetString("Body")
                 };
             }
-        }
-    }
-
-    public static class SlugHelper
-    {
-        public static string GenerateSlug(string title)
-        {
-            if (string.IsNullOrWhiteSpace(title))
-                return string.Empty;
-
-            string normalizedString = title.Normalize(NormalizationForm.FormD);
-            StringBuilder sb = new StringBuilder();
-
-            foreach (char c in normalizedString)
-            {
-                if (CharUnicodeInfo.GetUnicodeCategory(c) != UnicodeCategory.NonSpacingMark)
-                {
-                    sb.Append(c);
-                }
-            }
-
-            string slug = sb.ToString().Normalize(NormalizationForm.FormC).ToLower();
-            slug = Regex.Replace(slug, @"[^a-z0-9\s-]", ""); // Remove special characters
-            slug = Regex.Replace(slug, @"\s+", "-"); // Replace spaces with hyphens
-            slug = Regex.Replace(slug, @"-+", "-"); // Remove duplicate hyphens
-
-            return slug.Trim('-'); // Remove trailing hyphens
         }
     }
 }
