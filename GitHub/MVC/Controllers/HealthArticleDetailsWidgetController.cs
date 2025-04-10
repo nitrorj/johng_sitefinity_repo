@@ -1,4 +1,4 @@
-﻿using MercolaSiteFinity.MVC.ViewModel;
+using MercolaSiteFinity.MVC.ViewModel;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -60,7 +60,8 @@ namespace MercolaSiteFinity.MVC.Controllers
                 IsSubscriber = isSubscriber,
                 ArticleContent = article.Body,
                 PreviousArticleURL = previousArticle != null ? baseUrl + FormatUrl(previousArticle.Title) : null,
-                NextArticleURL = nextArticle != null ? baseUrl + FormatUrl(nextArticle.Title) : null
+                NextArticleURL = nextArticle != null ? baseUrl + FormatUrl(nextArticle.Title) : null,
+                ListPageURL = baseUrl
             };
 
             return View("HealthArticleDetails", viewModel);
