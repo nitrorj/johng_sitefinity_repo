@@ -1,4 +1,4 @@
-﻿@using MercolaSiteFinity.MVC.ViewModel
+@using MercolaSiteFinity.MVC.ViewModel
 <style>
     .page-container {
         display: flex;
@@ -76,7 +76,7 @@
             }
             else if (!string.IsNullOrEmpty(Model.NextArticleURL))
             {
-                <a href="/health-articles"><span class="arrow">←</span>  View More </a>
+                <a href="@Model.ListPageURL"><span class="arrow">←</span>  View More </a>
             }
         </div>
 
@@ -85,8 +85,6 @@
             <h1>@Model.Article.Title</h1>
             <p><strong>Published on:</strong> @Model.Article.Date.ToString("MMMM dd, yyyy")</p>
             @Html.Raw(HttpUtility.HtmlDecode(Model.ArticleContent))
-
-            <a href="/health-articles" class="back-link">Back to Articles</a>
         </div>
     <div class="article-navigation">
             @if (!string.IsNullOrEmpty(Model.NextArticleURL))
@@ -95,7 +93,7 @@
             }
             else if (!string.IsNullOrEmpty(Model.PreviousArticleURL))
             {
-                <a href="/health-articles">View More <span class="arrow">→</span></a>
+                <a href="@Model.ListPageURL">View More <span class="arrow">→</span></a>
             }
     </div>
 </div>
