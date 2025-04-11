@@ -11,6 +11,7 @@ using Telerik.Sitefinity.Personalization;
 using Telerik.Sitefinity.Utilities.TypeConverters;
 using Telerik.Sitefinity.Web;
 using Telerik.Sitefinity.Web.UI;
+using HtmlAgilityPack;
 
 namespace MercolaSiteFinity.MVC.Controllers
 {
@@ -52,13 +53,17 @@ namespace MercolaSiteFinity.MVC.Controllers
                 Request.Url.Authority,
                 pagePath.Trim('/'));
 
+            string articleContent = isSubscriber
+                ? SanitizeHtml(article.Body)
+                : SanitizeHtml(article.Body.Length > 300 ? article.Body.Substring(0, 300) + "..." : article.Body);
+
             var viewModel = new HealthArticleDetailViewModel
             {
                 Article = article,
                 PreviousArticle = previousArticle,
                 NextArticle = nextArticle,
                 IsSubscriber = isSubscriber,
-                ArticleContent = article.Body,
+                ArticleContent = articleContent,
                 PreviousArticleURL = previousArticle != null ? baseUrl + FormatUrl(previousArticle.Title) : null,
                 NextArticleURL = nextArticle != null ? baseUrl + FormatUrl(nextArticle.Title) : null,
                 ListPageURL = baseUrl
@@ -70,6 +75,14 @@ namespace MercolaSiteFinity.MVC.Controllers
         private string FormatUrl(string title)
         {
             return title.ToLower().Replace(" ", "-").Replace(",", "-").Replace(".", "").Replace("'", "").Replace("\"", "").Replace(":", "-");
+        }
+
+        private string SanitizeHtml(string html)
+        {
+            var doc = new HtmlDocument();
+            doc.OptionFixNestedTags = true;
+            doc.LoadHtml(html ?? string.Empty);
+            return doc.DocumentNode.OuterHtml;
         }
 
         protected override void HandleUnknownAction(string actionName)
