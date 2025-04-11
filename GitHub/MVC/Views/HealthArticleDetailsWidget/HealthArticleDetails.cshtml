@@ -69,31 +69,76 @@
 </style>
 
 <div class="page-container">
-        <div class="article-navigation">
-            @if (!string.IsNullOrEmpty(Model.PreviousArticleURL))
-            {
-                <a href="@Model.PreviousArticleURL"> <span class="arrow">←</span> <span class="button-text">@Model.PreviousArticle.Title</span></a>
-            }
-            else if (!string.IsNullOrEmpty(Model.NextArticleURL))
-            {
-                <a href="@Model.ListPageURL"><span class="arrow">←</span>  View More </a>
-            }
-        </div>
+    <div class="article-navigation">
+        @if (!string.IsNullOrEmpty(Model.PreviousArticleURL))
+        {
+            <a href="@Model.PreviousArticleURL"> <span class="arrow">←</span> <span class="button-text">@Model.PreviousArticle.Title</span></a>
+        }
+        else if (!string.IsNullOrEmpty(Model.NextArticleURL))
+        {
+            <a href="@Model.ListPageURL"><span class="arrow">←</span>  View More </a>
+        }
+    </div>
 
-
-        <div class="health-article-container">
+    <div class="health-article-container">
+        <div class="health-article">
+            <p> @DateTime.Now</p>
             <h1>@Model.Article.Title</h1>
             <p><strong>Published on:</strong> @Model.Article.Date.ToString("MMMM dd, yyyy")</p>
-            @Html.Raw(HttpUtility.HtmlDecode(Model.ArticleContent))
+
+            <div class="article-body">
+                @Html.Raw(HttpUtility.HtmlDecode((string)Model.ArticleContent))
+            </div>
+
+
+            @if (!Model.IsSubscriber)
+            {
+                <p>🔒 Subscribe to unlock the full article</p>
+                <form id="subscribeForm" action="/processing" method="post">
+                    <input type="hidden" name="sfaction" value="Subscribe" />
+                    <input type="hidden" name="returnUrl" value="@Request.Url.AbsoluteUri" />
+                    <input type="hidden" id="source" name="source" value="" />
+                    <input type="hidden" id="sourceLocation" name="sourceLocation" value="" />
+                    <input type="email" name="email" placeholder="Enter your email" required />
+
+                    <button type="submit">Subscribe</button>
+                </form>
+            }
+            else
+            {
+                <div style="text-align: center; margin-top: 40px;">
+                    <form id="unsubscribeForm" action="/processing" method="post">
+                        <input type="hidden" name="sfaction" value="Unsubscribe" />
+                        <input type="hidden" id="subscriberEmail" name="subscriberEmail" value="user@example.com" />
+                        <input type="hidden" id="source" name="source" value="" />
+                        <input type="hidden" id="sourceLocation" name="sourceLocation" value="" />
+                        <button type="submit" style="background-color: transparent; border: none; color: gray; font-size: 12px; text-decoration: underline; cursor: pointer;">
+                            Unsubscribe
+                        </button>
+                    </form>
+                </div>
+            }
         </div>
-    <div class="article-navigation">
-            @if (!string.IsNullOrEmpty(Model.NextArticleURL))
-            {
-                <a href="@Model.NextArticleURL"> <span class="button-text">@Model.NextArticle.Title</span> <span class="arrow">→</span></a>
-            }
-            else if (!string.IsNullOrEmpty(Model.PreviousArticleURL))
-            {
-                <a href="@Model.ListPageURL">View More <span class="arrow">→</span></a>
-            }
     </div>
+
+    <div class="article-navigation">
+        @if (!string.IsNullOrEmpty(Model.NextArticleURL))
+        {
+            <a href="@Model.NextArticleURL"> <span class="button-text">@Model.NextArticle.Title</span> <span class="arrow">→</span></a>
+        }
+        else if (!string.IsNullOrEmpty(Model.PreviousArticleURL))
+        {
+            <a href="@Model.ListPageURL">View More <span class="arrow">→</span></a>
+        }
+    </div>
+
+
 </div>
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+        var isMobile = /Mobi|Android/i.test(navigator.userAgent);
+        var deviceType = isMobile ? "mobile" : "desktop";
+        document.getElementById("source").value = "article-HealthArticles-" + deviceType;
+        document.getElementById("sourceLocation").value = window.location.href;
+    });
+</script>
